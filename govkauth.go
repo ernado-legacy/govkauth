@@ -25,10 +25,9 @@ const (
 
 var (
 	// ErrorBadCode occures when server returns blank code or error
-	ErrorBadCode = errors.New("bad code")
+	ErrorBadCode                = errors.New("bad code")
+	httpClient   mockHTTPClient = &http.Client{}
 )
-
-var httpClient mockHTTPClient = &http.Client{}
 
 // Client for vkontakte oauth
 type Client struct {
@@ -105,6 +104,5 @@ func (client *Client) GetAccessToken(res *http.Response) (token *AccessToken, er
 
 	token = &AccessToken{}
 	decoder := json.NewDecoder(res.Body)
-	err = decoder.Decode(token)
-	return token, err
+	return token, decoder.Decode(token)
 }

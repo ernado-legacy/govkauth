@@ -13,7 +13,11 @@ type MockClient struct {
 }
 
 func (c *MockClient) Get(url string) (res *http.Response, err error) {
-	return c.Response, nil
+	err = nil
+	if c.Response == nil {
+		err = http.ErrShortBody
+	}
+	return c.Response, err
 }
 
 func TestClient(t *testing.T) {
@@ -39,5 +43,24 @@ func TestClient(t *testing.T) {
 		So(tok.AccessToken, ShouldEqual, "533bacf01e11f55b536a565b57531ac114461ae8736d6506a3")
 		So(tok.Expires, ShouldEqual, 43200)
 		So(tok.UserID, ShouldEqual, int64(6492))
+
+		Convey("Bad response", func() {
+			resTok.Body = ioutil.NopCloser(bytes.NewBufferString("asdfasdf"))
+			httpClient = &MockClient{resTok}
+			_, err := client.GetAccessToken(res)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("Bad urk", func() {
+			res.Request, _ = http.NewRequest("GET", "http://REDIRECT_URI?error=kek", nil)
+			_, err := client.GetAccessToken(res)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("Http error", func() {
+			httpClient = &MockClient{nil}
+			_, err := client.GetAccessToken(res)
+			So(err, ShouldNotBeNil)
+		})
 	})
 }

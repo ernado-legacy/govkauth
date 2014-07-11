@@ -29,16 +29,15 @@ func TestClient(t *testing.T) {
 	})
 
 	Convey("Test accessTokenUrl", t, func() {
-		res := &http.Response{}
 		urlStr := "http://REDIRECT_URI?code=7a6fa4dff77a228eeda56603b8f53806c883f011c40b72630bb50df056f6479e52a"
-		res.Request, _ = http.NewRequest("GET", urlStr, nil)
+		req, _ := http.NewRequest("GET", urlStr, nil)
 
 		resTok := &http.Response{}
 		body := `{"access_token":"533bacf01e11f55b536a565b57531ac114461ae8736d6506a3", "expires_in":43200, "user_id":6492}`
 		resTok.Body = ioutil.NopCloser(bytes.NewBufferString(body))
 		httpClient = &MockClient{resTok}
 
-		tok, err := client.GetAccessToken(res)
+		tok, err := client.GetAccessToken(req)
 		So(err, ShouldBeNil)
 		So(tok.AccessToken, ShouldEqual, "533bacf01e11f55b536a565b57531ac114461ae8736d6506a3")
 		So(tok.Expires, ShouldEqual, 43200)
@@ -47,19 +46,19 @@ func TestClient(t *testing.T) {
 		Convey("Bad response", func() {
 			resTok.Body = ioutil.NopCloser(bytes.NewBufferString("asdfasdf"))
 			httpClient = &MockClient{resTok}
-			_, err := client.GetAccessToken(res)
+			_, err := client.GetAccessToken(req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("Bad urk", func() {
-			res.Request, _ = http.NewRequest("GET", "http://REDIRECT_URI?error=kek", nil)
-			_, err := client.GetAccessToken(res)
+			req, _ = http.NewRequest("GET", "http://REDIRECT_URI?error=kek", nil)
+			_, err := client.GetAccessToken(req)
 			So(err, ShouldNotBeNil)
 		})
 
 		Convey("Http error", func() {
 			httpClient = &MockClient{nil}
-			_, err := client.GetAccessToken(res)
+			_, err := client.GetAccessToken(req)
 			So(err, ShouldNotBeNil)
 		})
 	})

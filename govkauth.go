@@ -88,8 +88,8 @@ func (client *Client) accessTokenURL(code string) url.URL {
 }
 
 // GetAccessToken is handler for redirect, gets and returns access token
-func (client *Client) GetAccessToken(res *http.Response) (token *AccessToken, err error) {
-	query := res.Request.URL.Query()
+func (client *Client) GetAccessToken(req *http.Request) (token *AccessToken, err error) {
+	query := req.URL.Query()
 	code := query.Get(codeParameter)
 	if code == "" {
 		err = ErrorBadCode
@@ -97,7 +97,7 @@ func (client *Client) GetAccessToken(res *http.Response) (token *AccessToken, er
 	}
 
 	requestURL := client.accessTokenURL(code)
-	res, err = httpClient.Get(requestURL.String())
+	res, err := httpClient.Get(requestURL.String())
 	if err != nil {
 		return token, err
 	}

@@ -1,7 +1,7 @@
 govkauth
 ========
 
-Vkontakte golang oauth
+Vkontakte golang oauth, библиотека oauth для Вконтакте
 
 [![Build Status](https://travis-ci.org/ernado/gorobokassa.svg?branch=master)](https://travis-ci.org/ernado/gorobokassa)
 [![Coverage Status](https://coveralls.io/repos/ernado/govkauth/badge.png)](https://coveralls.io/r/ernado/govkauth)

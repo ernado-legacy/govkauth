@@ -81,7 +81,7 @@ func (client *Client) accessTokenURL(code string) url.URL {
 
 	query := u.Query()
 	query.Add(appSecretParameter, client.Secret)
-	query.Add(code, codeParameter)
+	query.Add(codeParameter, code)
 
 	u.RawQuery = query.Encode()
 	return u
@@ -93,13 +93,13 @@ func (client *Client) GetAccessToken(req *http.Request) (token *AccessToken, err
 	code := query.Get(codeParameter)
 	if code == "" {
 		err = ErrorBadCode
-		return token, err
+		return nil, err
 	}
 
 	requestURL := client.accessTokenURL(code)
 	res, err := httpClient.Get(requestURL.String())
 	if err != nil {
-		return token, err
+		return nil, err
 	}
 
 	token = &AccessToken{}

@@ -23,6 +23,7 @@ const (
 	authAction            = "authorize"
 	codeParameter         = "code"
 	usersGetAction        = "users.get"
+	uidsParameter         = "uids"
 )
 
 var (
@@ -43,7 +44,7 @@ type Client struct {
 
 type usersAnswer struct {
 	Response []struct {
-		ID        string `json:"uid"`
+		ID        int64  `json:"uid"`
 		Photo     string `json:"photo"`
 		FirstName string `json:"first_name"`
 		LastName  string `json:"last_name"`
@@ -121,10 +122,12 @@ func (client *Client) GetAccessToken(req *http.Request) (token *AccessToken, err
 }
 
 func (client *Client) GetName(uid int64) (name string, err error) {
-	u := client.base(usersGetAction)
+	u := client.base(fmt.Sprintf("method/%s", usersGetAction))
+	u.Host = "api.vk.com"
 	q := u.Query()
 	q.Del(appIDParameter)
 	q.Del(redirectParameter)
+	q.Add(uidsParameter, fmt.Sprint(uid))
 	u.RawQuery = q.Encode()
 	res, err := httpClient.Get(u.String())
 	if err != nil {

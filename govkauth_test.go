@@ -28,6 +28,36 @@ func TestClient(t *testing.T) {
 		So(url.String(), ShouldEqual, should)
 	})
 
+	Convey("Test getName", t, func() {
+		res := &http.Response{}
+		body := `{"response":[{"uid":"1","first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}]}`
+		res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
+		httpClient = &MockClient{res}
+		name, err := client.GetName(1)
+		So(err, ShouldBeNil)
+		So(name, ShouldEqual, "Павел Дуров")
+
+		Convey("Multiple response", func() {
+			body := `{"response":[{"uid":"1","first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}, {"uid":"1","first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}]}`
+			res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
+			_, err := client.GetName(1)
+			So(err, ShouldEqual, ErrorBadResponse)
+		})
+
+		Convey("Http error", func() {
+			httpClient = &MockClient{nil}
+			_, err := client.GetName(1)
+			So(err, ShouldNotBeNil)
+		})
+
+		Convey("Server error", func() {
+			body := `{"response": {"error": "500"}}`
+			res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
+			_, err := client.GetName(1)
+			So(err, ShouldNotBeNil)
+		})
+	})
+
 	Convey("Test accessTokenUrl", t, func() {
 		Convey("Request url ok", func() {
 			urlStr := "https://oauth.vk.com/access_token?client_id=APP_ID&client_secret=APP_SECRET&code=CODE&redirect_uri=REDIRECT_URI"

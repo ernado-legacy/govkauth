@@ -3,6 +3,7 @@ package govkauth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -21,12 +22,15 @@ const (
 	scopeParameter        = "scope"
 	authAction            = "authorize"
 	codeParameter         = "code"
+	usersGetAction        = "users.get"
 )
 
 var (
 	// ErrorBadCode occures when server returns blank code or error
-	ErrorBadCode                = errors.New("bad code")
-	httpClient   mockHTTPClient = &http.Client{}
+	ErrorBadCode = errors.New("bad code")
+	// ErrorBadResponse occures when server returns unexpected response
+	ErrorBadResponse                = errors.New("bad server response")
+	httpClient       mockHTTPClient = &http.Client{}
 )
 
 // Client for vkontakte oauth
@@ -35,6 +39,15 @@ type Client struct {
 	Secret      string
 	RedirectURL string
 	Scope       string
+}
+
+type usersAnswer struct {
+	Response []struct {
+		ID        string `json:"uid"`
+		Photo     string `json:"photo"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+	}
 }
 
 // AccessToken describes oath server response
@@ -105,4 +118,27 @@ func (client *Client) GetAccessToken(req *http.Request) (token *AccessToken, err
 	token = &AccessToken{}
 	decoder := json.NewDecoder(res.Body)
 	return token, decoder.Decode(token)
+}
+
+func (client *Client) GetName(uid int64) (name string, err error) {
+	u := client.base(usersGetAction)
+	q := u.Query()
+	q.Del(appIDParameter)
+	q.Del(redirectParameter)
+	u.RawQuery = q.Encode()
+	res, err := httpClient.Get(u.String())
+	if err != nil {
+		return
+	}
+	answer := &usersAnswer{}
+	decoder := json.NewDecoder(res.Body)
+	if err = decoder.Decode(answer); err != nil {
+		return
+	}
+	if len(answer.Response) != 1 {
+		err = ErrorBadResponse
+		return
+	}
+	user := answer.Response[0]
+	return fmt.Sprintf("%s %s", user.FirstName, user.LastName), nil
 }

@@ -37,7 +37,7 @@ func TestClient(t *testing.T) {
 				"first_name": "Александр",
 				"last_name": "Разумов",
 				"sex": 2,
-				"bdate": "10.10.1994",
+				"bdate": "10.11.1994",
 				"photo_max": "http://dsasas.asdad.rewrwe"
 			}]
 		}
@@ -48,7 +48,7 @@ func TestClient(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(user.ID, ShouldEqual, 51199441)
 		So(user.Birthday.Year(), ShouldEqual, 1994)
-		So(user.Birthday.Month(), ShouldEqual, 10)
+		So(user.Birthday.Month(), ShouldEqual, 11)
 		So(user.Birthday.Day(), ShouldEqual, 10)
 		So(user.Photo, ShouldNotEqual, "")
 		So(user.Sex, ShouldEqual, "male")

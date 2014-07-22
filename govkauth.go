@@ -142,6 +142,7 @@ func (client *Client) GetName(uid int64) (user User, err error) {
 	q.Del(appIDParameter)
 	q.Del(redirectParameter)
 	q.Add(uidsParameter, fmt.Sprint(uid))
+	q.Add(fieldsParameter, fiealdsValue)
 	link.RawQuery = q.Encode()
 	res, err := httpClient.Get(link.String())
 	if err != nil {
@@ -160,7 +161,7 @@ func (client *Client) GetName(uid int64) (user User, err error) {
 	user.Name = fmt.Sprintf("%s %s", u.FirstName, u.LastName)
 	user.ID = u.ID
 	user.Photo = u.Photo
-	user.Birthday, _ = time.Parse("01.02.2006", u.Birthday)
+	user.Birthday, _ = time.Parse("02.01.2006", u.Birthday)
 	if u.Sex == 2 {
 		user.Sex = "male"
 	}

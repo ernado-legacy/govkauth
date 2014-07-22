@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
@@ -20,6 +21,8 @@ const (
 	responseTypeCode      = "code"
 	redirectParameter     = "redirect_uri"
 	scopeParameter        = "scope"
+	fieldsParameter       = "fields"
+	fiealdsValue          = "photo_max,sex,bdate,photo"
 	authAction            = "authorize"
 	codeParameter         = "code"
 	usersGetAction        = "users.get"
@@ -44,11 +47,22 @@ type Client struct {
 
 type usersAnswer struct {
 	Response []struct {
-		ID        int64  `json:"uid"`
-		Photo     string `json:"photo"`
+		ID        int64  `json:"id"`
+		Photo     string `json:"photo_max"`
 		FirstName string `json:"first_name"`
 		LastName  string `json:"last_name"`
+		Sex       int    `json:"sex"`
+		Birthday  string `json:"bdate"`
 	}
+}
+
+type User struct {
+	ID       int64 `json:"uid"`
+	Photo    string
+	Name     string `json:"name"`
+	Sex      string `json:"gender"`
+	Email    string `json:"email"`
+	Birthday time.Time
 }
 
 // AccessToken describes oath server response
@@ -121,15 +135,15 @@ func (client *Client) GetAccessToken(req *http.Request) (token *AccessToken, err
 	return token, decoder.Decode(token)
 }
 
-func (client *Client) GetName(uid int64) (name string, err error) {
-	u := client.base(fmt.Sprintf("method/%s", usersGetAction))
-	u.Host = "api.vk.com"
-	q := u.Query()
+func (client *Client) GetName(uid int64) (user User, err error) {
+	link := client.base(fmt.Sprintf("method/%s", usersGetAction))
+	link.Host = "api.vk.com"
+	q := link.Query()
 	q.Del(appIDParameter)
 	q.Del(redirectParameter)
 	q.Add(uidsParameter, fmt.Sprint(uid))
-	u.RawQuery = q.Encode()
-	res, err := httpClient.Get(u.String())
+	link.RawQuery = q.Encode()
+	res, err := httpClient.Get(link.String())
 	if err != nil {
 		return
 	}
@@ -142,6 +156,16 @@ func (client *Client) GetName(uid int64) (name string, err error) {
 		err = ErrorBadResponse
 		return
 	}
-	user := answer.Response[0]
-	return fmt.Sprintf("%s %s", user.FirstName, user.LastName), nil
+	u := answer.Response[0]
+	user.Name = fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+	user.ID = u.ID
+	user.Photo = u.Photo
+	user.Birthday, _ = time.Parse("01.02.2006", u.Birthday)
+	if u.Sex == 2 {
+		user.Sex = "male"
+	}
+	if u.Sex == 1 {
+		user.Sex = "female"
+	}
+	return user, err
 }

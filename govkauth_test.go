@@ -30,12 +30,29 @@ func TestClient(t *testing.T) {
 
 	Convey("Test getName", t, func() {
 		res := &http.Response{}
-		body := `{"response":[{"uid":1,"first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}]}`
+		body := `
+		{"response":
+			[{
+				"id": 51199441,
+				"first_name": "Александр",
+				"last_name": "Разумов",
+				"sex": 2,
+				"bdate": "10.10.1994",
+				"photo_max": "http://dsasas.asdad.rewrwe"
+			}]
+		}
+		`
 		res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
 		httpClient = &MockClient{res}
-		name, err := client.GetName(1)
+		user, err := client.GetName(51199441)
 		So(err, ShouldBeNil)
-		So(name, ShouldEqual, "Павел Дуров")
+		So(user.ID, ShouldEqual, 51199441)
+		So(user.Birthday.Year(), ShouldEqual, 1994)
+		So(user.Birthday.Month(), ShouldEqual, 10)
+		So(user.Birthday.Day(), ShouldEqual, 10)
+		So(user.Photo, ShouldNotEqual, "")
+		So(user.Sex, ShouldEqual, "male")
+		So(user.Name, ShouldEqual, "Александр Разумов")
 
 		Convey("Multiple response", func() {
 			body := `{"response":[{"uid":1,"first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}, {"uid":2,"first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}]}`

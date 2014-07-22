@@ -124,7 +124,7 @@ func TestClient(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("Bad urk", func() {
+		Convey("Bad url", func() {
 			req, _ = http.NewRequest("GET", "http://REDIRECT_URI?error=kek", nil)
 			_, err := client.GetAccessToken(req)
 			So(err, ShouldNotBeNil)

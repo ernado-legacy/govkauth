@@ -54,6 +54,27 @@ func TestClient(t *testing.T) {
 		So(user.Sex, ShouldEqual, "male")
 		So(user.Name, ShouldEqual, "Александр Разумов")
 
+		Convey("Female", func() {
+			res := &http.Response{}
+			body := `
+			{"response":
+				[{
+					"id": 51199441,
+					"first_name": "Kek",
+					"last_name": "Kek",
+					"sex": 1,
+					"bdate": "10.11.1994",
+					"photo_max": "http://dsasas.asdad.rewrwe"
+				}]
+			}
+			`
+			res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
+			httpClient = &MockClient{res}
+			user, err := client.GetName(51199441)
+			So(err, ShouldBeNil)
+			So(user.Sex, ShouldEqual, "female")
+		})
+
 		Convey("Multiple response", func() {
 			body := `{"response":[{"uid":1,"first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}, {"uid":2,"first_name":"Павел","last_name":"Дуров","photo":"http://cs109.vkontakte.ru/u00001/c_df2abf56.jpg"}]}`
 			res.Body = ioutil.NopCloser(bytes.NewBufferString(body))
